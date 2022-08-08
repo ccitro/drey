@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   drey:
-    build: "."
+    image: ccitro/drey:latest
     restart: unless-stopped
     init: true
     ports:
