@@ -753,11 +753,12 @@
   dependencies:
     "@mantine/utils" "5.0.2"
 
-"@mantine/form@^5.0.2":
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/@mantine/form/-/form-5.0.2.tgz#9d13fcdddd9f7bdd6c164cc78b53d29cd86d2db3"
-  integrity sha512-VkW16orcIeOpQAdpSuXD2rIv/EVnMUCy00VV7zMhibFcT5j/qO4T0kW2gO4V5lp9xVCZuw1y1WthAdBA/GcQZA==
+"@mantine/form@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@mantine/form/-/form-5.1.0.tgz#a7d167f14fd0a9b72d0f3f78b7a2c35af7002087"
+  integrity sha512-py5y1wksWhtChBW71R3reiBzw1IHvsuS0vRhRUL6bevx7c4eeKP+EtGfUBzTZNX6iWFkCCv5bPI2PGa5BHWQjQ==
   dependencies:
+    fast-deep-equal "^3.1.3"
     klona "^2.0.5"
 
 "@mantine/hooks@^5.0.2":
