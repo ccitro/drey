@@ -1,0 +1,26 @@
+**/dist
+**/build
+**/node_modules
+**/.idea
+**/.vscode
+**/coverage
+**/docker-compose.yml
+**/drey.db
+**/drey.db-journal
+**/next-env.d.ts
+
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# typescript
+*.tsbuildinfo

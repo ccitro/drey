@@ -1,0 +1,13 @@
+*
+!prisma
+!public
+!res
+!src
+!yarn.lock
+!esbuild.mjs
+!next-env.d.ts
+!next.config.mjs
+!package.json
+!tsconfig.json
+
+**/drey.db

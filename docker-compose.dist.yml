@@ -1,0 +1,12 @@
+version: "3.4"
+
+services:
+  drey:
+    build: "."
+    restart: unless-stopped
+    init: true
+    ports:
+      - "3001:3001/tcp"
+    volumes:
+      - ./data/drey.db:/app/prisma/drey.db
+      - /etc/localtime:/etc/localtime:ro

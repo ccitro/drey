@@ -1,0 +1,115 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "Schedule": {
+            "properties": {
+                "rules": {
+                    "items": {
+                        "$ref": "#/definitions/ScheduleRule"
+                    },
+                    "type": "array"
+                },
+                "sensor": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "rules",
+                "sensor"
+            ],
+            "type": "object"
+        },
+        "ScheduleRule": {
+            "properties": {
+                "day": {
+                    "type": "number"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "temp": {
+                    "type": "number"
+                },
+                "time": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "day",
+                "label",
+                "temp",
+                "time"
+            ],
+            "type": "object"
+        },
+        "SystemConfig": {
+            "properties": {
+                "cooling_schedule": {
+                    "items": {
+                        "$ref": "#/definitions/Schedule"
+                    },
+                    "type": "array"
+                },
+                "heating_schedule": {
+                    "items": {
+                        "$ref": "#/definitions/Schedule"
+                    },
+                    "type": "array"
+                },
+                "temp_sensors": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "thermostat_entity_id": {
+                    "type": "string"
+                },
+                "thermostat_sensor": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "cooling_schedule",
+                "heating_schedule",
+                "temp_sensors",
+                "thermostat_entity_id",
+                "thermostat_sensor"
+            ],
+            "type": "object"
+        }
+    },
+    "properties": {
+        "configs": {
+            "items": {
+                "$ref": "#/definitions/SystemConfig"
+            },
+            "type": "array"
+        },
+        "external_sensor": {
+            "type": "string"
+        },
+        "ha_host": {
+            "type": "string"
+        },
+        "ha_key": {
+            "type": "string"
+        },
+        "tz": {
+            "type": "string"
+        },
+        "version": {
+            "type": "number"
+        }
+    },
+    "required": [
+        "configs",
+        "external_sensor",
+        "ha_host",
+        "ha_key",
+        "tz",
+        "version"
+    ],
+    "type": "object"
+}
+

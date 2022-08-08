@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./drey.db"
+}
+
+model Override {
+  id         Int    @id @default(autoincrement())
+  sensor     String @unique
+  targetTemp Int
+  reason     String
+  holdUntil  String
+}
+
+model Datastore {
+  id         Int    @id @default(autoincrement())
+  data_key   String @unique
+  data_value String
+}
