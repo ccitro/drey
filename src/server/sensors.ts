@@ -28,28 +28,13 @@ export function fetchLastStates(systemConfig: SystemConfig): {
     }
     const thermostat_id = systemConfig.thermostat_entity_id;
 
-    let thermostatState: ThermostatEntityState | null = connection.state(thermostat_id);
-    if (thermostatState && thermostatState.entity_id !== thermostat_id) {
-        console.error(`HA thermostat mismatch.  Expected ${thermostat_id}, got ${JSON.stringify(thermostatState)}`);
-        thermostatState = null;
-    }
-
+    const thermostatState: ThermostatEntityState | null = connection.state(thermostat_id);
     const sensorStates = systemConfig.temp_sensors.map((s) => {
         if (!s || !connection) {
             return null;
         }
 
-        const state: TempSensorEntityState | null = connection.state(s);
-        if (!state) {
-            return null;
-        }
-
-        if (state.entity_id !== s) {
-            console.error(`HA sensor mismatch.  Expected ${s}, got ${JSON.stringify(state)}`);
-            return null;
-        }
-
-        return state;
+        return connection.state(s);
     });
 
     const nonNullSensors = sensorStates.filter((s): s is TempSensorEntityState => s !== null);

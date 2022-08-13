@@ -168,7 +168,21 @@ export class HomeAssistant {
     call = (options: OutgoingMessagePayload) => this.send(Object.assign({ type: "call_service" }, options));
     on = (listener: Listener) => this.listeners.push(listener);
     state<T, U>(entity: string): EntityState<T, U> | null {
-        return (this.states[this.findEntity(entity)] as unknown as EntityState<T, U>) ?? null;
+        const i = this.findEntity(entity);
+        if (i < 0) {
+            return null;
+        }
+        const s = (this.states[i] as unknown as EntityState<T, U>) ?? null;
+
+        // @future remove debug code - findEntity should handle this now
+        if (s && s.entity_id !== entity) {
+            console.log(JSON.stringify(this.states));
+            console.log(JSON.stringify(this.findEntity(entity)));
+            console.error(`HA entity mismatch.  Expected ${entity}, got ${JSON.stringify(s)}`);
+            return null;
+        }
+
+        return s;
     }
 
     private emit = (event: unknown, data?: unknown) => this.listeners.forEach((l) => l(event, data));
@@ -225,6 +239,10 @@ export class HomeAssistant {
         if (change.event.event_type !== "state_changed") return;
 
         const changeIndex = this.findEntity(data.entity_id);
-        this.states[changeIndex] = data.new_state;
+        if (changeIndex === -1) {
+            this.states.push(data.new_state);
+        } else {
+            this.states[changeIndex] = data.new_state;
+        }
     }
 }
