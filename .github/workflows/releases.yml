@@ -6,14 +6,13 @@ on:
     - '*'
 
 jobs:
-
-  build:
+  Release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
     - uses: actions/checkout@v2
-    - uses: ncipollo/release-action@v1
       with:
-        bodyFile: "docs/RELEASE.md"
-        token: ${{ secrets.RELEASES_GITHUB_TOKEN }}
+        fetch-depth: 50
+    - uses: fregante/release-with-changelog@v3
+      with:
+        token: ${{ secrets.RELEASES_GITHUB_TOKEN}}
+
