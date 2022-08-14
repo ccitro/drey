@@ -23,9 +23,7 @@ jobs:
             ghcr.io/ccitro/drey
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,pattern={{raw}}
             type=sha
       -
         name: Set up QEMU
