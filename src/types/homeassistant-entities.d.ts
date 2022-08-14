@@ -20,11 +20,21 @@ interface TempSensorEntityAttributes {
 }
 
 interface WeatherEntityAttributes {
+    temperature: number;
+    temperature_unit: string;
+    humidity: number;
+    ozone: number;
+    pressure: number;
+    pressure_unit: string;
+    wind_bearing: number;
+    wind_speed: number;
+    wind_speed_unit: string;
+    visibility: number;
+    visibility_unit: string;
+    precipitation_unit: string;
+    forecast: unknown;
     attribution: string;
-    unit_of_measurement: string;
     friendly_name: string;
-    icon: string;
-    device_class: string;
 }
 
 interface EntityState<T, U> {

@@ -26,6 +26,28 @@ interface ConfigApiEvent {
 
 type ApiEvent = PingApiEvent | StateApiEvent | ConfigApiEvent;
 
+type WeatherCondition =
+    | "clear-night"
+    | "cloudy"
+    | "fog"
+    | "hail"
+    | "lightning"
+    | "lightning-rainy"
+    | "partlycloudy"
+    | "pouring"
+    | "rainy"
+    | "snowy"
+    | "snowy-rainy"
+    | "sunny"
+    | "windy"
+    | "windy-variant"
+    | "exceptional";
+
+interface WeatherData {
+    externalTemperature: number;
+    condition: WeatherCondition;
+}
+
 interface ScheduleRule {
     day: number;
     time: number;

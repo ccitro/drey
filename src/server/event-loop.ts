@@ -1,11 +1,11 @@
 import { processSystem } from "./planner";
-import { fetchLastStates, getExternalTemperature, setThermostatTemperature } from "./sensors";
+import { fetchLastStates, getWeather, setThermostatTemperature } from "./sensors";
 import { getConfig } from "./stores/config";
 import { getOverrides } from "./stores/overrides";
 import { cleanupSystemStates, updateSystemState } from "./stores/system-state";
 import { sleep, temperatureValue } from "./utils";
 
-async function handleSystem(systemConfig: SystemConfig, externalSensor: string, tz: string): Promise<void> {
+async function handleSystem(systemConfig: SystemConfig, weatherEntity: string, tz: string): Promise<void> {
     const thermostat = systemConfig.thermostat_entity_id;
     const { thermostatState, sensorStates } = fetchLastStates(systemConfig);
 
@@ -21,7 +21,7 @@ async function handleSystem(systemConfig: SystemConfig, externalSensor: string, 
         systemConfig.heating_schedule,
         systemConfig.cooling_schedule,
         await getOverrides(thermostat),
-        getExternalTemperature(externalSensor) ?? 70,
+        getWeather(weatherEntity) ?? { condition: "sunny", externalTemperature: 70 },
         tz
     );
 

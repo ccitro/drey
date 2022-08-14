@@ -2,21 +2,30 @@ import { HomeAssistant } from "./homeassistant";
 import { registerConfigListener } from "./stores/config";
 
 let connection: HomeAssistant;
-let lastTemp: number | undefined = undefined;
+let lastWeather: WeatherData | undefined = undefined;
 const lastTempSetCalls: Record<string, [number, string]> = {};
 
-export function getExternalTemperature(sensor: string): number | undefined {
+export function getWeather(entity: string): WeatherData | undefined {
     if (!connection) {
         return undefined;
     }
-    const state: WeatherEntityState | null = connection.state(sensor);
-    const temp = !state || !state.state ? NaN : parseFloat(state.state);
-    const newTemp = isNaN(temp) ? undefined : temp;
-    if (newTemp !== lastTemp) {
-        console.log(`External temp updated`, newTemp);
-        lastTemp = newTemp;
+
+    const state: WeatherEntityState | null = connection.state(entity);
+    if (!state || !state.attributes.temperature) {
+        return undefined;
     }
-    return newTemp;
+
+    // @future convert temperature_unit
+    const weather: WeatherData = {
+        condition: state.state as unknown as WeatherCondition,
+        externalTemperature: state.attributes.temperature,
+    };
+
+    if (JSON.stringify(weather) !== JSON.stringify(lastWeather)) {
+        console.log(`Weather updated: `, weather);
+        lastWeather = weather;
+    }
+    return weather;
 }
 
 export function fetchLastStates(systemConfig: SystemConfig): {

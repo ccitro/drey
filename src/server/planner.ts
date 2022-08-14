@@ -91,7 +91,12 @@ function calculateDelta(time: Date, rule: ScheduleRule, tz: string): number {
     return delta;
 }
 
-function needToActNowToReachTemp(operation: OperationMode, tempDelta: number, timeDelta: number): boolean {
+function needToActNowToReachTemp(
+    operation: OperationMode,
+    tempDelta: number,
+    timeDelta: number,
+    weather: WeatherData
+): boolean {
     if (tempDelta < 0) {
         // already within bounds of rule
         return false;
@@ -103,15 +108,18 @@ function needToActNowToReachTemp(operation: OperationMode, tempDelta: number, ti
         return false;
     }
 
-    // @future consider time of day, outside temp
-    let minsToCoolOneDegree = 30;
-    const today = new Date();
-    const hour = today.getHours();
-    const month = today.getMonth();
+    // data gathered:
+    // 25 minutes to cool 1 degree, on a cloudy day when it was 77 degrees out
 
-    // takes longer in hot months.
-    if (month >= 6 && month <= 8 && hour >= 12 && hour <= 22) {
-        minsToCoolOneDegree = 60;
+    let minsToCoolOneDegree = 30;
+
+    if (weather.externalTemperature > 70) {
+        const scale = Math.floor((weather.externalTemperature - 70) / 10);
+        minsToCoolOneDegree += 15 * scale;
+    }
+
+    if (weather.condition === "cloudy") {
+        minsToCoolOneDegree = minsToCoolOneDegree / 2;
     }
 
     const minsRequiredToCool = tempDelta * minsToCoolOneDegree;
@@ -181,7 +189,8 @@ function decideIfNextRuleRequiresAction(
     currentRule: ScheduleRule,
     nextRule: ScheduleRule,
     nextRuleStartsAt: Date,
-    tz: string
+    tz: string,
+    weather: WeatherData
 ): RuleDecision {
     const now = new Date();
     const timeDelta = calculateDelta(now, nextRule, tz);
@@ -191,7 +200,7 @@ function decideIfNextRuleRequiresAction(
         tempDelta = -1 * tempDelta;
     }
 
-    if (needToActNowToReachTemp(operation, tempDelta, timeDelta)) {
+    if (needToActNowToReachTemp(operation, tempDelta, timeDelta, weather)) {
         return { relevantRule: nextRule, ruleType: "future", nextRuleStartsAt };
     }
 
@@ -224,13 +233,14 @@ function buildSensorStatus(
     themorstatSensor: string,
     scheduleRules: ScheduleRule[],
     overrides: Override[],
-    tz: string
+    tz: string,
+    weather: WeatherData
 ): SensorStatus {
     if (scheduleRules.length === 0 || sensorIsDisconnected(s, themorstatSensor)) {
         return specialSensorStatus(thermostatState.state, s, "disconnected");
     }
 
-    const ruleDecision = makeRuleDecision(thermostatState.state, s, scheduleRules, overrides, tz);
+    const ruleDecision = makeRuleDecision(thermostatState.state, s, scheduleRules, overrides, tz, weather);
     const desiredChange = temperatureValue(s.state) - ruleDecision.relevantRule.temp;
 
     return {
@@ -252,7 +262,8 @@ function makeRuleDecision(
     sensorState: TempSensorEntityState,
     rules: ScheduleRule[],
     overrides: Override[],
-    tz: string
+    tz: string,
+    weather: WeatherData
 ): RuleDecision {
     const overrideRule = buildOverrideRule(sensorState, overrides);
     if (overrideRule) {
@@ -269,7 +280,7 @@ function makeRuleDecision(
     const timeRemaining = deltaRules[0].delta;
 
     const nextRuleStartsAt = new Date(Math.round(now.getTime() + timeRemaining * 1000));
-    return decideIfNextRuleRequiresAction(operation, sensorState, currentRule, nextRule, nextRuleStartsAt, tz);
+    return decideIfNextRuleRequiresAction(operation, sensorState, currentRule, nextRule, nextRuleStartsAt, tz, weather);
 }
 
 export async function processSystem(
@@ -279,7 +290,7 @@ export async function processSystem(
     heatingSchedule: Schedule[],
     coolingSchedule: Schedule[],
     overrides: Override[],
-    externalTemperature: number,
+    weather: WeatherData,
     tz: string
 ): Promise<SystemProcessingResult> {
     let newSensorStatuses: SensorStatus[] = [];
@@ -298,7 +309,7 @@ export async function processSystem(
         };
 
         newSensorStatuses = sensorStates.map((s) => specialSensorStatus(thermostatState.state, s, "off"));
-    } else if (needsCoolingProtection(thermostatState, externalTemperature)) {
+    } else if (needsCoolingProtection(thermostatState, weather.externalTemperature)) {
         newSensorStatuses = sensorStates.map((s) => specialSensorStatus(thermostatState.state, s, "protection"));
         newThermostatStatus = buildThermostatStatusFromSensorsAndThermostat(
             thermostatSensor,
@@ -309,7 +320,7 @@ export async function processSystem(
         const scheDefs = thermostatState.state === "cool" ? coolingSchedule : heatingSchedule;
         newSensorStatuses = sensorStates.map((sensor) => {
             const scheduleRules = scheDefs.find((schDef) => schDef.sensor === sensor.entity_id)?.rules ?? [];
-            return buildSensorStatus(sensor, thermostatState, thermostatSensor, scheduleRules, overrides, tz);
+            return buildSensorStatus(sensor, thermostatState, thermostatSensor, scheduleRules, overrides, tz, weather);
         });
         newThermostatStatus = buildThermostatStatusFromSensorsAndThermostat(
             thermostatSensor,
