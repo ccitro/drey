@@ -331,7 +331,7 @@ describe("needToActNowToReachTemp", () => {
 
     test("Precooling should not happen on a cool day", () => {
         const testWeather: WeatherData = { condition: "cloudy", externalTemperature: 75 };
-        expect(needToActNowToReachTemp("cool", 3, 60 * 60, testWeather)).toBe(false);
+        expect(needToActNowToReachTemp("cool", 3, 60 * 60 * 1.5, testWeather)).toBe(false);
     });
 });
 

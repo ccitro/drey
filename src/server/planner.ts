@@ -97,29 +97,28 @@ function needToActNowToReachTemp(
     timeDelta: number,
     weather: WeatherData
 ): boolean {
-    if (tempDelta < 0) {
-        // already within bounds of rule
+    if (tempDelta < 0 || operation !== "cool") {
         return false;
     }
 
     const mins = Math.floor(timeDelta / 60);
 
-    if (operation !== "cool") {
-        return false;
-    }
-
     // data gathered:
     // 25 minutes to cool 1 degree, on a cloudy day when it was 77 degrees out
+    // 47 mins to cool 2 degree, on a cloudy day when it was 68 degrees out
 
-    let minsToCoolOneDegree = 30;
+    const baseInterval = 20;
+    let minsToCoolOneDegree = baseInterval;
 
+    // add 1 "base interval" for every 10 degrees above an external temp of 70
     if (weather.externalTemperature > 70) {
         const scale = Math.floor((weather.externalTemperature - 70) / 10);
-        minsToCoolOneDegree += 15 * scale;
+        minsToCoolOneDegree += baseInterval * scale;
     }
 
-    if (weather.condition === "cloudy") {
-        minsToCoolOneDegree = minsToCoolOneDegree / 2;
+    // add 1 "base interval" if it is sunny outside
+    if (weather.condition === "sunny") {
+        minsToCoolOneDegree += baseInterval;
     }
 
     const minsRequiredToCool = tempDelta * minsToCoolOneDegree;
