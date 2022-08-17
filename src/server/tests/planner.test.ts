@@ -19,10 +19,10 @@ const {
     needToActNowToReachTemp,
     pickActionNeeded,
     buildThermostatStatusFromSensorsAndThermostat,
-    decideIfNextRuleRequiresAction,
     buildOverrideRule,
     buildSensorStatus,
     makeRuleDecision,
+    buildPreconditionRule,
     processSystem,
 } = _private;
 
@@ -37,6 +37,9 @@ const recentDate = new Date(nowDate.getTime() - 1 * 60 * 1000);
 const soonDate = new Date(nowDate.getTime() + 1000 * 60 * 5);
 const distantDate = new Date(nowDate.getTime() + 1000 * 60 * 60 * 5);
 const weather: WeatherData = { condition: "sunny", externalTemperature: 70 };
+const preconditioningHandler = async () => {
+    /* noop */
+};
 
 beforeAll(() => {
     jest.useFakeTimers({ now: nowDate });
@@ -158,6 +161,48 @@ const mockCoolingSensorStatuses: SensorStatus[] = [
         ruleTemp: mockCoolingSensorStatus.ruleTemp - 5,
     },
 ];
+
+describe("buildPreconditionRule", () => {
+    test("Does not create a precondition rule if not needed", async () => {
+        const localDistantDate = dayjs(distantDate).tz(tz);
+        const handler = jest.fn(async (_: number) => {
+            /* noop */
+        });
+        const sensor: TempSensorEntityState = {
+            ...mockTempSensor,
+            state: "70",
+        };
+        const rule: ScheduleRule = {
+            day: localDistantDate.day(),
+            label: "Sample",
+            temp: 68,
+            time: localDistantDate.hour() * 60 + localDistantDate.minute(),
+        };
+        const r = await buildPreconditionRule("cool", sensor, rule, soonDate, handler, weather, tz);
+        expect(r).toBe(null);
+        expect(handler.mock.calls.length).toBe(0);
+    });
+
+    test("Creates a precondition rule if needed", async () => {
+        const localSoonDate = dayjs(soonDate).tz(tz);
+        const handler = jest.fn(async (_: number) => {
+            /* noop */
+        });
+        const sensor: TempSensorEntityState = {
+            ...mockTempSensor,
+            state: "80",
+        };
+        const rule: ScheduleRule = {
+            day: localSoonDate.day(),
+            label: "Sample",
+            temp: 68,
+            time: localSoonDate.hour() * 60 + localSoonDate.minute(),
+        };
+        const r = await buildPreconditionRule("cool", sensor, rule, soonDate, handler, weather, tz);
+        expect(r?.ruleType).toBe("future");
+        expect(handler.mock.calls.length).toBe(1);
+    });
+});
 
 describe("getSensorName", () => {
     test("Uses the friendly name if available", () => {
@@ -401,96 +446,6 @@ describe("buildThermostatStatusFromSensorsAndThermostat", () => {
     });
 });
 
-describe("decideIfNextRuleRequiresAction", () => {
-    function bRule(date: Date, temp: number): ScheduleRule {
-        const localDate = dayjs(date).tz(tz);
-        return {
-            day: localDate.day(),
-            label: "Sample",
-            temp,
-            time: localDate.hour() * 60 + localDate.minute(),
-        };
-    }
-
-    const bSensor = (temp: number): TempSensorEntityState => ({
-        ...mockTempSensor,
-        state: String(temp),
-    });
-
-    const currentRule = bRule(recentDate, 68);
-
-    test("Does not require action if thermostat is off", () => {
-        const decision = decideIfNextRuleRequiresAction(
-            "off",
-            bSensor(79),
-            currentRule,
-            bRule(soonDate, 68),
-            soonDate,
-            tz,
-            weather
-        );
-        expect(decision.relevantRule).toBe(currentRule);
-        expect(decision.ruleType).toBe("schedule");
-    });
-
-    test("Does not require cool action if next rule is distant", () => {
-        const decision = decideIfNextRuleRequiresAction(
-            "cool",
-            bSensor(72),
-            currentRule,
-            bRule(distantDate, 70),
-            distantDate,
-            tz,
-            weather
-        );
-        expect(decision.relevantRule).toBe(currentRule);
-        expect(decision.ruleType).toBe("schedule");
-    });
-
-    test("Does not require heat action if next rule is distant", () => {
-        const decision = decideIfNextRuleRequiresAction(
-            "heat",
-            bSensor(70),
-            currentRule,
-            bRule(distantDate, 72),
-            distantDate,
-            tz,
-            weather
-        );
-        expect(decision.relevantRule).toBe(currentRule);
-        expect(decision.ruleType).toBe("schedule");
-    });
-
-    test("Does not require heat action if next rule is soon", () => {
-        const decision = decideIfNextRuleRequiresAction(
-            "heat",
-            bSensor(70),
-            currentRule,
-            bRule(soonDate, 72),
-            soonDate,
-            tz,
-            weather
-        );
-        expect(decision.relevantRule).toBe(currentRule);
-        expect(decision.ruleType).toBe("schedule");
-    });
-
-    test("Requires cool action if next rule is soon", () => {
-        const coolRule = bRule(soonDate, 65);
-        const decision = decideIfNextRuleRequiresAction(
-            "cool",
-            bSensor(currentRule.temp),
-            currentRule,
-            coolRule,
-            soonDate,
-            tz,
-            weather
-        );
-        expect(decision.relevantRule).toBe(coolRule);
-        expect(decision.ruleType).toBe("future");
-    });
-});
-
 describe("buildOverrideRule", () => {
     const sampleMatchingOverride: Override = {
         holdUntil: distantDate.toISOString(),
@@ -525,27 +480,46 @@ describe("buildSensorStatus", () => {
         },
     ];
 
-    test("Builds a disconnected sensor status when disconnected", () => {
+    test("Builds a disconnected sensor status when disconnected", async () => {
         const oldRemoteSensor: TempSensorEntityState = { ...mockTempSensor, last_updated: oldDate.toISOString() };
-        const sit = buildSensorStatus(oldRemoteSensor, mockCoolingThermostatState, "other", [], [], tz, weather);
+        const sit = await buildSensorStatus(
+            oldRemoteSensor,
+            mockCoolingThermostatState,
+            "other",
+            [],
+            [],
+            preconditioningHandler,
+            weather,
+            tz
+        );
         expect(sit.ruleType).toBe("disconnected");
     });
-    test("Builds a scheduled sensor status", () => {
-        const sit = buildSensorStatus(mockTempSensor, mockCoolingThermostatState, "other", schedules, [], tz, weather);
+    test("Builds a scheduled sensor status", async () => {
+        const sit = await buildSensorStatus(
+            mockTempSensor,
+            mockCoolingThermostatState,
+            "other",
+            schedules,
+            [],
+            preconditioningHandler,
+            weather,
+            tz
+        );
         expect(sit.ruleType).toBe("schedule");
         expect(sit.ruleLabel).toBe(schedules[0].label);
         expect(sit.ruleTemp).toBe(schedules[0].temp);
         expect(String(sit.currentTemp)).toBe(mockTempSensor.state);
     });
-    test("Builds an override scheduled sensor status", () => {
-        const sit = buildSensorStatus(
+    test("Builds an override scheduled sensor status", async () => {
+        const sit = await buildSensorStatus(
             mockTempSensor,
             mockCoolingThermostatState,
             "other",
             schedules,
             overrides,
-            tz,
-            weather
+            preconditioningHandler,
+            weather,
+            tz
         );
         expect(sit.ruleType).toBe("override");
         expect(sit.ruleLabel.includes(overrides[0].reason)).toBe(true);
@@ -564,18 +538,26 @@ describe("makeRuleDecision", () => {
         },
     ];
 
-    test("Makes an override rule if needed", () => {
-        const decision = makeRuleDecision("cool", mockTempSensor, mockScheduleRules, overrides, tz, weather);
+    test("Makes an override rule if needed", async () => {
+        const decision = await makeRuleDecision(
+            "cool",
+            mockTempSensor,
+            mockScheduleRules,
+            overrides,
+            preconditioningHandler,
+            weather,
+            tz
+        );
         expect(decision.ruleType).toBe("override");
         expect(decision.relevantRule.temp).toBe(overrides[0].targetTemp);
         expect(decision.relevantRule.label.includes(overrides[0].reason)).toBe(true);
         expect(decision.nextRuleStartsAt.toISOString()).toBe(overrides[0].holdUntil);
     });
 
-    test("Picks the currently scheduled rule", () => {
+    test("Picks the currently scheduled rule", async () => {
         const scheduleOpts = [mockScheduleRules, mockScheduleRules.slice().reverse()];
         for (const s of scheduleOpts) {
-            const decision = makeRuleDecision("cool", mockTempSensor, s, [], tz, weather);
+            const decision = await makeRuleDecision("cool", mockTempSensor, s, [], preconditioningHandler, weather, tz);
             expect(decision.ruleType).toBe("schedule");
             expect(decision.relevantRule.temp).toBe(mockScheduleRules[0].temp);
             expect(decision.relevantRule.label.includes(mockScheduleRules[0].label)).toBe(true);
@@ -592,6 +574,7 @@ describe("processThermostat", () => {
             [],
             [{ sensor: mockTempSensor.entity_id, rules: mockScheduleRules }],
             [],
+            preconditioningHandler,
             weather,
             tz
         );
@@ -607,6 +590,7 @@ describe("processThermostat", () => {
             [],
             [{ sensor: mockTempSensor.entity_id, rules: mockScheduleRules }],
             [],
+            preconditioningHandler,
             { condition: "cloudy", externalTemperature: 50 },
             tz
         );
@@ -621,6 +605,7 @@ describe("processThermostat", () => {
             [],
             [{ sensor: mockTempSensor.entity_id, rules: mockScheduleRules }],
             [],
+            preconditioningHandler,
             weather,
             tz
         );

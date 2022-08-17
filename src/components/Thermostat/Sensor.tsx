@@ -21,6 +21,14 @@ function localTime(isoTime: string): string {
     return new Date(isoTime).toLocaleString().split(", ")[1].replace(":00 ", " ");
 }
 
+function getLabel(sensor: SensorStatus): string {
+    if (sensor.ruleType === "override" && sensor.ruleLabel === "Preconditioning") {
+        return "Future";
+    }
+
+    return capitalize(sensor.ruleType);
+}
+
 function getReason(sensor: SensorStatus): string {
     const endType = sensor.ruleType === "future" ? "reach by" : "maintain until";
     let reason = `${endType} ${localTime(sensor.ruleEndsAt)} per rule '${sensor.ruleLabel}'`;
@@ -88,7 +96,7 @@ export default function Sensor({ thermostat, sensor }: SensorProps) {
             />
             <TempBlock
                 temp={ruleTemp}
-                label={capitalize(sensorStatus.ruleType)}
+                label={getLabel(sensorStatus)}
                 onClick={onOverrideClick}
                 tip={getReason(sensorStatus)}
             />

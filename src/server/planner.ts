@@ -5,8 +5,8 @@ import dayjsUtc from "dayjs/plugin/utc";
 import { LOWEST_TEMP_ALLOWED_FOR_AC, MAX_TEMP, MIN_TEMP } from "./constants";
 import { dateToString, temperatureValue } from "./utils";
 
-type SensorPreconditioningHandler = (temp: number) => unknown;
-export type PreconditioningHandler = (sensor: string, temp: number) => unknown;
+type SensorPreconditioningHandler = (temp: number, endsAt: string) => Promise<unknown>;
+export type PreconditioningHandler = (sensor: string, temp: number, endsAt: string) => Promise<unknown>;
 
 dayjs.extend(dayjsUtc);
 dayjs.extend(dayjsTimezone);
@@ -194,19 +194,19 @@ function buildOverrideRule(sensorState: TempSensorEntityState, overrides: Overri
 
     const overrideRule: ScheduleRule = {
         day: 0,
-        label: "Override: " + sensorOverrides[0].reason,
+        label: sensorOverrides[0].reason,
         temp: sensorOverrides[0].targetTemp,
         time: 0,
     };
 
     return {
         relevantRule: overrideRule,
-        ruleType: "override",
+        ruleType: overrideRule.label === "Preconditioning" ? "future" : "override",
         nextRuleStartsAt: new Date(sensorOverrides[0].holdUntil),
     };
 }
 
-function buildSensorStatus(
+async function buildSensorStatus(
     s: TempSensorEntityState,
     thermostatState: ThermostatEntityState,
     themorstatSensor: string,
@@ -215,12 +215,12 @@ function buildSensorStatus(
     preconditioningHandler: SensorPreconditioningHandler,
     weather: WeatherData,
     tz: string
-): SensorStatus {
+): Promise<SensorStatus> {
     if (scheduleRules.length === 0 || sensorIsDisconnected(s, themorstatSensor)) {
         return specialSensorStatus(thermostatState.state, s, "disconnected");
     }
 
-    const ruleDecision = makeRuleDecision(
+    const ruleDecision = await makeRuleDecision(
         thermostatState.state,
         s,
         scheduleRules,
@@ -245,7 +245,7 @@ function buildSensorStatus(
     };
 }
 
-function buildPreconditionRule(
+async function buildPreconditionRule(
     operation: OperationMode,
     sensorState: TempSensorEntityState,
     nextRule: ScheduleRule,
@@ -253,7 +253,7 @@ function buildPreconditionRule(
     preconditionHandler: SensorPreconditioningHandler,
     weather: WeatherData,
     tz: string
-): RuleDecision | null {
+): Promise<RuleDecision | null> {
     const now = new Date();
     const timeDelta = calculateDelta(now, nextRule, tz);
     let tempDelta = temperatureValue(sensorState.state) - nextRule.temp;
@@ -263,7 +263,7 @@ function buildPreconditionRule(
     }
 
     if (needToActNowToReachTemp(operation, tempDelta, timeDelta, weather)) {
-        preconditionHandler(nextRule.temp);
+        await preconditionHandler(nextRule.temp, nextRuleStartsAt.toISOString());
         const overrideRule: ScheduleRule = {
             day: 0,
             label: "Preconditioning",
@@ -273,7 +273,7 @@ function buildPreconditionRule(
 
         return {
             relevantRule: overrideRule,
-            ruleType: "override",
+            ruleType: "future",
             nextRuleStartsAt,
         };
     }
@@ -281,7 +281,7 @@ function buildPreconditionRule(
     return null;
 }
 
-function makeRuleDecision(
+async function makeRuleDecision(
     operation: OperationMode,
     sensorState: TempSensorEntityState,
     rules: ScheduleRule[],
@@ -289,7 +289,7 @@ function makeRuleDecision(
     preconditioningHandler: SensorPreconditioningHandler,
     weather: WeatherData,
     tz: string
-): RuleDecision {
+): Promise<RuleDecision> {
     const overrideRule = buildOverrideRule(sensorState, overrides);
     if (overrideRule) {
         return overrideRule;
@@ -304,7 +304,7 @@ function makeRuleDecision(
     const timeRemaining = deltaRules[0].delta;
     const nextRuleStartsAt = new Date(Math.round(now.getTime() + timeRemaining * 1000));
 
-    const preconditionRule = buildPreconditionRule(
+    const preconditionRule = await buildPreconditionRule(
         operation,
         sensorState,
         nextRule,
@@ -356,19 +356,21 @@ export async function processSystem(
         );
     } else {
         const scheDefs = thermostatState.state === "cool" ? coolingSchedule : heatingSchedule;
-        newSensorStatuses = sensorStates.map((sensor) => {
-            const scheduleRules = scheDefs.find((schDef) => schDef.sensor === sensor.entity_id)?.rules ?? [];
-            return buildSensorStatus(
-                sensor,
-                thermostatState,
-                thermostatSensor,
-                scheduleRules,
-                overrides,
-                (t: number) => preconditioningHandler(sensor.entity_id, t),
-                weather,
-                tz
-            );
-        });
+        newSensorStatuses = await Promise.all(
+            sensorStates.map((sensor) => {
+                const scheduleRules = scheDefs.find((schDef) => schDef.sensor === sensor.entity_id)?.rules ?? [];
+                return buildSensorStatus(
+                    sensor,
+                    thermostatState,
+                    thermostatSensor,
+                    scheduleRules,
+                    overrides,
+                    (t: number, until: string) => preconditioningHandler(sensor.entity_id, t, until),
+                    weather,
+                    tz
+                );
+            })
+        );
         newThermostatStatus = buildThermostatStatusFromSensorsAndThermostat(
             thermostatSensor,
             thermostatState,
@@ -402,5 +404,6 @@ export const _private = {
     buildOverrideRule,
     buildSensorStatus,
     makeRuleDecision,
+    buildPreconditionRule,
     processSystem,
 };

@@ -21,10 +21,11 @@ export async function deleteOverride(_thermostat: string, sensor: string): Promi
     await prisma.override.delete({ where: { sensor } });
 }
 
-export async function addOverride(
-    thermostat: string,
-    sensorStatus: SensorStatus,
-    targetTemp: number
+export async function addOverrideForSensor(
+    sensor: string,
+    holdUntil: string,
+    targetTemp: number,
+    reason: string
 ): Promise<Override> {
     if (isNaN(targetTemp) || targetTemp < MIN_TEMP || targetTemp > MAX_TEMP) {
         console.error("Invalid temp");
@@ -32,17 +33,25 @@ export async function addOverride(
     }
 
     const override: Override = {
-        sensor: sensorStatus.id,
+        sensor,
         targetTemp,
-        reason: "User Override",
-        holdUntil: sensorStatus.ruleEndsAt,
+        reason,
+        holdUntil,
     };
 
     await prisma.override.upsert({
-        where: { sensor: sensorStatus.id },
+        where: { sensor },
         update: { ...override },
         create: { ...override },
     });
 
     return override;
+}
+
+export async function addOverride(
+    thermostat: string,
+    sensorStatus: SensorStatus,
+    targetTemp: number
+): Promise<Override> {
+    return addOverrideForSensor(sensorStatus.id, sensorStatus.ruleEndsAt, targetTemp, "User Override");
 }

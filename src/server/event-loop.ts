@@ -1,7 +1,7 @@
 import { processSystem } from "./planner";
 import { fetchLastStates, getWeather, setThermostatTemperature } from "./sensors";
 import { getConfig } from "./stores/config";
-import { getOverrides } from "./stores/overrides";
+import { addOverrideForSensor, getOverrides } from "./stores/overrides";
 import { cleanupSystemStates, updateSystemState } from "./stores/system-state";
 import { sleep, temperatureValue } from "./utils";
 
@@ -21,6 +21,10 @@ async function handleSystem(systemConfig: SystemConfig, weatherEntity: string, t
         systemConfig.heating_schedule,
         systemConfig.cooling_schedule,
         await getOverrides(thermostat),
+        async (sensor, temp, until) => {
+            console.log("Precondition requested", sensor, temp, until);
+            await addOverrideForSensor(sensor, until, temp, "Preconditioning");
+        },
         getWeather(weatherEntity) ?? { condition: "sunny", externalTemperature: 70 },
         tz
     );
