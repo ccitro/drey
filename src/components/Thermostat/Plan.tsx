@@ -19,7 +19,7 @@ function buildOperationPlan(sensorSituations: SensorStatus[], thermostatStatus: 
 
     let why = "";
     if (activeSensor.ruleType === "future") {
-        why = `to prepare for the '${activeSensor.ruleLabel}' rule`;
+        why = `before the next rule starts`;
     } else if (activeSensor.ruleType === "schedule") {
         why = `for the '${activeSensor.ruleLabel}' rule`;
     } else {
