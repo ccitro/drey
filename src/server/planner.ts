@@ -154,6 +154,7 @@ function pickActionNeeded(
 
 function buildThermostatStatusFromSensorsAndThermostat(
     thermostatSensor: string,
+    thermostatTemperature: number,
     thermostatState: ThermostatEntityState,
     sensorStatuses: SensorStatus[]
 ): ThermostatStatus {
@@ -178,7 +179,7 @@ function buildThermostatStatusFromSensorsAndThermostat(
         activeSensor: demandingSensor,
         thermostatSensor,
         fanState: thermostatState.attributes.fan_mode === "on",
-        functionalCurrentTemp: thermostatState.attributes.current_temperature,
+        functionalCurrentTemp: thermostatTemperature,
         hvacState: thermostatState.attributes.hvac_action,
         lastChanged: dateToString(new Date()),
         targetTemp: demandingTemp,
@@ -208,7 +209,8 @@ function buildOverrideRule(sensorState: TempSensorEntityState, overrides: Overri
 
 async function buildSensorStatus(
     s: TempSensorEntityState,
-    thermostatState: ThermostatEntityState,
+    operationMode: OperationMode,
+    thermostatTemperature: number,
     themorstatSensor: string,
     scheduleRules: ScheduleRule[],
     overrides: Override[],
@@ -217,11 +219,11 @@ async function buildSensorStatus(
     tz: string
 ): Promise<SensorStatus> {
     if (scheduleRules.length === 0 || sensorIsDisconnected(s, themorstatSensor)) {
-        return specialSensorStatus(thermostatState.state, s, "disconnected");
+        return specialSensorStatus(operationMode, s, "disconnected");
     }
 
     const ruleDecision = await makeRuleDecision(
-        thermostatState.state,
+        operationMode,
         s,
         scheduleRules,
         overrides,
@@ -229,9 +231,10 @@ async function buildSensorStatus(
         weather,
         tz
     );
-    const desiredChange = temperatureValue(s.state) - ruleDecision.relevantRule.temp;
-    let desiredThermostatSetting = thermostatState.attributes.current_temperature - desiredChange;
-    if (thermostatState.state === "cool") {
+
+    const desiredChange = parseFloat(s.state) - ruleDecision.relevantRule.temp;
+    let desiredThermostatSetting = thermostatTemperature - desiredChange;
+    if (operationMode === "cool") {
         desiredThermostatSetting = temperatureValue(Math.floor(desiredThermostatSetting));
     } else {
         desiredThermostatSetting = temperatureValue(Math.ceil(desiredThermostatSetting));
@@ -242,7 +245,7 @@ async function buildSensorStatus(
         label: getSensorName(s),
         ruleLabel: ruleDecision.relevantRule.label,
         ruleTemp: ruleDecision.relevantRule.temp,
-        actionNeeded: pickActionNeeded(ruleDecision.relevantRule, s, thermostatState.state),
+        actionNeeded: pickActionNeeded(ruleDecision.relevantRule, s, operationMode),
         currentTemp: temperatureValue(s.state),
         desiredThermostatSetting,
         lastMeasuredAt: dateToString(s.last_updated && s.last_updated.length ? new Date(s.last_updated) : new Date()),
@@ -340,15 +343,21 @@ export async function processSystem(
     let newSensorStatuses: SensorStatus[] = [];
     let newThermostatStatus: ThermostatStatus | null = null;
 
+    // perfer the temperature at the thermostat that comes from the sensor entity, since it has higher precision
+    const thermostatTemperature = parseFloat(
+        sensorStates.find((s) => s.entity_id === thermostatSensor)?.state ??
+            String(thermostatState.attributes.current_temperature)
+    );
+
     if (!["heat", "cool"].includes(thermostatState.state)) {
         newThermostatStatus = {
             thermostatSensor,
             activeSensor: thermostatSensor,
             fanState: thermostatState.attributes.fan_mode === "on",
-            functionalCurrentTemp: thermostatState.attributes.current_temperature,
+            functionalCurrentTemp: thermostatTemperature,
             hvacState: thermostatState.attributes.hvac_action,
             lastChanged: dateToString(new Date()),
-            targetTemp: thermostatState.attributes.current_temperature,
+            targetTemp: thermostatTemperature,
             targetTempType: "off",
         };
 
@@ -357,6 +366,7 @@ export async function processSystem(
         newSensorStatuses = sensorStates.map((s) => specialSensorStatus(thermostatState.state, s, "protection"));
         newThermostatStatus = buildThermostatStatusFromSensorsAndThermostat(
             thermostatSensor,
+            thermostatTemperature,
             thermostatState,
             newSensorStatuses
         );
@@ -367,7 +377,8 @@ export async function processSystem(
                 const scheduleRules = scheDefs.find((schDef) => schDef.sensor === sensor.entity_id)?.rules ?? [];
                 return buildSensorStatus(
                     sensor,
-                    thermostatState,
+                    thermostatState.state,
+                    thermostatTemperature,
                     thermostatSensor,
                     scheduleRules,
                     overrides,
@@ -379,6 +390,7 @@ export async function processSystem(
         );
         newThermostatStatus = buildThermostatStatusFromSensorsAndThermostat(
             thermostatSensor,
+            thermostatTemperature,
             thermostatState,
             newSensorStatuses
         );
