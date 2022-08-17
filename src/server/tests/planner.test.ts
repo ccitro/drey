@@ -403,7 +403,12 @@ describe("buildThermostatStatusFromSensorsAndThermostat", () => {
         ];
 
         for (const s of testSetups) {
-            const thermostatStatus = buildThermostatStatusFromSensorsAndThermostat(s[0].id, s[1], [s[0]]);
+            const thermostatStatus = buildThermostatStatusFromSensorsAndThermostat(
+                s[0].id,
+                s[1].attributes.current_temperature,
+                s[1],
+                [s[0]]
+            );
             expect(thermostatStatus.activeSensor).toBe(s[0].id);
             expect(thermostatStatus.thermostatSensor).toBe(s[0].id);
             expect(thermostatStatus.fanState).toBe(s[1].attributes.fan_mode === "on");
@@ -421,6 +426,7 @@ describe("buildThermostatStatusFromSensorsAndThermostat", () => {
         for (const ss of [mockCoolingSensorStatuses, reversed]) {
             const thermostatStatus = buildThermostatStatusFromSensorsAndThermostat(
                 mockCoolingSensorStatus.id,
+                mockCoolingThermostatState.attributes.current_temperature,
                 mockCoolingThermostatState,
                 ss
             );
@@ -437,6 +443,7 @@ describe("buildThermostatStatusFromSensorsAndThermostat", () => {
         for (const ss of [mockHeatingSensorStatuses, reversed]) {
             const thermostatStatus = buildThermostatStatusFromSensorsAndThermostat(
                 mockHeatingSensorStatus.id,
+                mockHeatingThermostatState.attributes.current_temperature,
                 mockHeatingThermostatState,
                 ss
             );
@@ -484,7 +491,8 @@ describe("buildSensorStatus", () => {
         const oldRemoteSensor: TempSensorEntityState = { ...mockTempSensor, last_updated: oldDate.toISOString() };
         const sit = await buildSensorStatus(
             oldRemoteSensor,
-            mockCoolingThermostatState,
+            mockCoolingThermostatState.state,
+            mockCoolingThermostatState.attributes.current_temperature,
             "other",
             [],
             [],
@@ -497,7 +505,8 @@ describe("buildSensorStatus", () => {
     test("Builds a scheduled sensor status", async () => {
         const sit = await buildSensorStatus(
             mockTempSensor,
-            mockCoolingThermostatState,
+            mockCoolingThermostatState.state,
+            mockCoolingThermostatState.attributes.current_temperature,
             "other",
             schedules,
             [],
@@ -513,7 +522,8 @@ describe("buildSensorStatus", () => {
     test("Builds an override scheduled sensor status", async () => {
         const sit = await buildSensorStatus(
             mockTempSensor,
-            mockCoolingThermostatState,
+            mockCoolingThermostatState.state,
+            mockCoolingThermostatState.attributes.current_temperature,
             "other",
             schedules,
             overrides,
@@ -610,7 +620,7 @@ describe("processThermostat", () => {
             tz
         );
 
-        expect(result.newTargetTemperature).toBe(String(mockCoolingSensorStatus.desiredThermostatSetting));
+        expect(result.newTargetTemperature).toBe(String(mockScheduleRules[0].temp));
         expect(result.newThermostatStatus.activeSensor).toBe(mockTempSensor.entity_id);
         expect(result.newThermostatStatus.targetTempType).toBe(mockCoolingThermostatState.state);
         expect(result.newSensorStatuses.length).toBe(1);
