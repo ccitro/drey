@@ -230,6 +230,12 @@ async function buildSensorStatus(
         tz
     );
     const desiredChange = temperatureValue(s.state) - ruleDecision.relevantRule.temp;
+    let desiredThermostatSetting = thermostatState.attributes.current_temperature - desiredChange;
+    if (thermostatState.state === "cool") {
+        desiredThermostatSetting = temperatureValue(Math.floor(desiredThermostatSetting));
+    } else {
+        desiredThermostatSetting = temperatureValue(Math.ceil(desiredThermostatSetting));
+    }
 
     return {
         id: s.entity_id,
@@ -238,7 +244,7 @@ async function buildSensorStatus(
         ruleTemp: ruleDecision.relevantRule.temp,
         actionNeeded: pickActionNeeded(ruleDecision.relevantRule, s, thermostatState.state),
         currentTemp: temperatureValue(s.state),
-        desiredThermostatSetting: temperatureValue(thermostatState.attributes.current_temperature - desiredChange),
+        desiredThermostatSetting,
         lastMeasuredAt: dateToString(s.last_updated && s.last_updated.length ? new Date(s.last_updated) : new Date()),
         ruleEndsAt: dateToString(ruleDecision.nextRuleStartsAt),
         ruleType: ruleDecision.ruleType,
