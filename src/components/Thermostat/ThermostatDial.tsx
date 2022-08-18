@@ -153,7 +153,7 @@ function Ambient({ ambient, target }: InnerProps) {
 
 export default function ThermostatDial({ thermostat }: { thermostat: string }) {
     const thermostatStatus = useAppSelector((state) => selectThermostat(state, thermostat));
-    const ambient = Math.round(thermostatStatus.functionalCurrentTemp);
+    const ambient = Math.round(thermostatStatus.ambientTemp);
     const target = Math.round(thermostatStatus.targetTemp);
     const mode = thermostatStatus.hvacState;
 

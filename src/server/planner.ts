@@ -179,7 +179,7 @@ function buildThermostatStatusFromSensorsAndThermostat(
         activeSensor: demandingSensor,
         thermostatSensor,
         fanState: thermostatState.attributes.fan_mode === "on",
-        functionalCurrentTemp: thermostatTemperature,
+        ambientTemp: thermostatTemperature,
         hvacState: thermostatState.attributes.hvac_action,
         lastChanged: dateToString(new Date()),
         targetTemp: demandingTemp,
@@ -233,12 +233,7 @@ async function buildSensorStatus(
     );
 
     const desiredChange = parseFloat(s.state) - ruleDecision.relevantRule.temp;
-    let desiredThermostatSetting = thermostatTemperature - desiredChange;
-    if (operationMode === "cool") {
-        desiredThermostatSetting = temperatureValue(Math.floor(desiredThermostatSetting));
-    } else {
-        desiredThermostatSetting = temperatureValue(Math.ceil(desiredThermostatSetting));
-    }
+    const desiredThermostatSetting = temperatureValue(thermostatTemperature - desiredChange, operationMode);
 
     return {
         id: s.entity_id,
@@ -354,7 +349,7 @@ export async function processSystem(
             thermostatSensor,
             activeSensor: thermostatSensor,
             fanState: thermostatState.attributes.fan_mode === "on",
-            functionalCurrentTemp: thermostatTemperature,
+            ambientTemp: thermostatTemperature,
             hvacState: thermostatState.attributes.hvac_action,
             lastChanged: dateToString(new Date()),
             targetTemp: thermostatTemperature,

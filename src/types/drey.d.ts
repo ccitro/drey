@@ -82,7 +82,7 @@ interface SensorStatus {
 interface ThermostatStatus {
     targetTemp: number;
     targetTempType: OperationMode;
-    functionalCurrentTemp: number;
+    ambientTemp: number;
     activeSensor: string;
     thermostatSensor: string;
     fanState: boolean;

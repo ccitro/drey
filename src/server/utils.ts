@@ -12,7 +12,10 @@ export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve
 
 export const dateToString = (d: Date) => d.toISOString().replace(/\.\d{0,3}Z/, "Z");
 
-export const temperatureValue = (t: string | number) => Math.round(parseFloat(String(t)) * 10) / 10;
+export function temperatureValue(t: string | number, _mode?: OperationMode): number {
+    // FUTURE: reconsider using OperationMode to affect rounding (Math.floor on "cool")
+    return Math.round(parseFloat(String(t)) * 10) / 10;
+}
 
 function getBaseDir(): string {
     if (baseDir === null) {
