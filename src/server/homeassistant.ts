@@ -186,7 +186,7 @@ export class HomeAssistant {
     }
 
     private emit = (event: unknown, data?: unknown) => this.listeners.forEach((l) => l(event, data));
-    private findEntity = (id: string) => this.states.findIndex((state) => state.entity_id === id);
+    private findEntity = (id: string) => this.states.findIndex((state) => state?.entity_id === id);
 
     private reconnect(): void {
         if (this.destroyed || this.retry) return;
@@ -237,6 +237,11 @@ export class HomeAssistant {
     private updateState(change: IncomingMessagePayload): void {
         const data = change.event.data;
         if (change.event.event_type !== "state_changed") return;
+
+        if (!data.new_state) {
+            console.log("Invalid state object provided", change);
+            return;
+        }
 
         const changeIndex = this.findEntity(data.entity_id);
         if (changeIndex === -1) {
