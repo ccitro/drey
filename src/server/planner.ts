@@ -53,7 +53,7 @@ function sensorIsDisconnected(sensor: TempSensorEntityState, themorstatSensor: s
     const last_updated = sensor.last_updated && sensor.last_updated.length ? new Date(sensor.last_updated) : new Date();
     const now = Date.now();
     const timeDiff = Math.abs(now - last_updated.getTime()) / 1000;
-    const deviceTimeout = 30 * 60;
+    const deviceTimeout = 120 * 60;
     return timeDiff > deviceTimeout;
 }
 
