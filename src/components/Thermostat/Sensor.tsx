@@ -1,5 +1,4 @@
-import { Group, Text } from "@mantine/core";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { deleteOverride, setOverride } from "services/api";
 import { useAppSelector } from "store/store";
 import { selectSensor, selectThermostatActiveSensor, selectThermostatMainSensor } from "store/systemStatesSlice";
@@ -42,9 +41,16 @@ function getReason(sensor: SensorStatus): string {
 
 export default function Sensor({ thermostat, sensor }: SensorProps) {
     const [overrideOpen, setOverrideOpen] = useState(false);
+    const [statusTooltip, setStatusTooltip] = useState("Loading...");
+    const [reasonTooltip, setReasonTooltip] = useState("Loading...");
     const activeSensor = useAppSelector((state) => selectThermostatActiveSensor(state, thermostat));
     const thermostatSensor = useAppSelector((state) => selectThermostatMainSensor(state, thermostat));
     const sensorStatus = useAppSelector((state) => selectSensor(state, sensor));
+
+    useEffect(() => {
+        setStatusTooltip(`Temperature as of ${localTime(sensorStatus.lastMeasuredAt)}`);
+        setReasonTooltip(getReason(sensorStatus));
+    }, [sensorStatus]);
 
     const onOverrideResult = useCallback(
         async (result: ModalOverrideResult) => {
@@ -81,25 +87,18 @@ export default function Sensor({ thermostat, sensor }: SensorProps) {
     }
 
     return (
-        <Group grow p="sm" sx={{ backgroundColor }}>
+        <div className="flex p-2 space-x-4 items-center" style={{ backgroundColor }}>
             {overrideOpen && (
                 <OverrideEditor opened={overrideOpen} sensorStatus={sensorStatus} onResult={onOverrideResult} />
             )}
             <SensorIcons isActiveSensor={isActiveSensor} isThermostatSensor={isThermostatSensor} />
-            <Text weight={700} size="lg" sx={{ flexGrow: 1, maxWidth: "100%" }}>
-                {sensorStatus.label}
-            </Text>
+            <div className="font-bold text-lg grow max-w-full">{sensorStatus.label}</div>
             <TempBlock
                 temp={sensorStatus.currentTemp.toFixed(1)}
                 label={sensorStatus.ruleType === "disconnected" ? "Last" : "Current"}
-                tip={`Temperature as of ${localTime(sensorStatus.lastMeasuredAt)}`}
+                tip={statusTooltip}
             />
-            <TempBlock
-                temp={ruleTemp}
-                label={getLabel(sensorStatus)}
-                onClick={onOverrideClick}
-                tip={getReason(sensorStatus)}
-            />
-        </Group>
+            <TempBlock temp={ruleTemp} label={getLabel(sensorStatus)} onClick={onOverrideClick} tip={reasonTooltip} />
+        </div>
     );
 }

@@ -1,5 +1,4 @@
 import cog from "@iconify-icons/mdi/cog";
-import { Space, Stack } from "@mantine/core";
 import LastUpdated from "components/Thermostat/LastUpdated";
 import Plan from "components/Thermostat/Plan";
 import SensorRows from "components/Thermostat/SensorRows";
@@ -42,23 +41,17 @@ interface ThermostatProps {
 
 const Thermostat: NextPage<ThermostatProps> = ({ thermostat }) => {
     return (
-        <Stack
-            sx={{
-                margin: "0 auto",
-                maxWidth: "500px",
-                minWidth: "350px",
-                minHeight: "100vh",
-            }}
-            spacing={0}
-        >
+        <div className="elative">
             <TopIcon icon={cog} href="/config" label="Config" />
-            <ThermostatDial thermostat={thermostat} />
-            <SensorRows thermostat={thermostat} />
-            <Space h={12} />
-            <Plan thermostat={thermostat} />
-            <Space sx={{ flexGrow: 1 }} />
-            <LastUpdated />
-        </Stack>
+            <div className="mx-auto w-[32rem] max-sm:w-full h-screen flex flex-col r">
+                <ThermostatDial thermostat={thermostat} />
+                <SensorRows thermostat={thermostat} />
+                <div className="h-3" />
+                <Plan thermostat={thermostat} />
+                <div className="grow" />
+                <LastUpdated />
+            </div>
+        </div>
     );
 };
 

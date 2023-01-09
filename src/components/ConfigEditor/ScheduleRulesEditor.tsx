@@ -2,8 +2,8 @@ import { Icon } from "@iconify-icon/react";
 import plus from "@iconify-icons/mdi/plus";
 import sortNumericAscending from "@iconify-icons/mdi/sort-numeric-ascending";
 import trashCan from "@iconify-icons/mdi/trash-can";
-import { ActionIcon, Box, Group, Loader, Stack, Text, TextInput } from "@mantine/core";
-import { TimeInput } from "@mantine/dates";
+import { ActionIcon } from "components/ActionIcon";
+import Input from "components/Input";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
@@ -33,55 +33,38 @@ export function ScheduleRulesEditor({ type, systemSeq, sensorSeq }: ScheduleRule
     useEffect(() => setFrontendLoaded(true), []);
 
     if (!frontendLoaded) {
-        return <Loader variant="dots" />;
+        return <div>Loading...</div>;
     }
 
     const onSortClick = () => dispatch(sortModeRules({ type, systemSeq, sensorSeq }));
     let ruleSeq = -1;
     return (
-        <Stack
-            sx={{
-                "> div > div:nth-of-type(1)": {
-                    width: "80px",
-                },
-                "> div > div:nth-of-type(2)": {
-                    width: "35px",
-                },
-                "> div > div:nth-of-type(3)": {
-                    width: "calc(100% - 35px - 80px - 25px)",
-                },
-                "> div > div:nth-of-type(4)": {
-                    width: "25px",
-                },
-            }}
-        >
-            <Group position="apart">
-                <Text sx={{ whiteSpace: "nowrap" }} size="md">
-                    {type.charAt(0).toUpperCase() + type.slice(1)}ing Rules
-                </Text>
-                <ActionIcon title="Sort rules" variant="outline" size="md" onClick={onSortClick}>
-                    <Icon icon={sortNumericAscending} />
-                </ActionIcon>
-            </Group>
+        <div className="flex flex-col space-y-4">
+            <div className="flex justify-between">
+                <div className="whitespace-nowrap">{type.charAt(0).toUpperCase() + type.slice(1)}ing Rules</div>
+                <ActionIcon
+                    title="Sort rules"
+                    className="border border-white-600 text-white-600 hover:bg-neutral-600 rounded-lg"
+                    size={16}
+                    icon={sortNumericAscending}
+                    onClick={onSortClick}
+                />
+            </div>
             {dayNames.map((dayName, daySeq) => {
                 const dayRules = rules.filter((r) => r.day === daySeq);
                 return (
-                    <React.Fragment key={daySeq}>
-                        <Group position="apart">
-                            <Text size="md" color="dimmed" pt="sm" px="xs">
-                                {dayName}
-                            </Text>
+                    <div key={daySeq}>
+                        <div className="flex justify-between mb-2">
+                            <div className="text-neutral-400">{dayName}</div>
 
                             <ActionIcon
                                 title="Add rule to day"
-                                color="green"
-                                variant="outline"
-                                size="xs"
+                                className="border border-green-400 text-green-400 hover:bg-green-900 rounded-lg"
+                                size={16}
+                                icon={plus}
                                 onClick={() => dispatch(insertRule({ systemSeq, sensorSeq, type, daySeq }))}
-                            >
-                                <Icon icon={plus} />
-                            </ActionIcon>
-                        </Group>
+                            />
+                        </div>
                         {dayRules.map((rule) => {
                             ruleSeq++;
                             return (
@@ -95,10 +78,10 @@ export function ScheduleRulesEditor({ type, systemSeq, sensorSeq }: ScheduleRule
                                 />
                             );
                         })}
-                    </React.Fragment>
+                    </div>
                 );
             })}
-        </Stack>
+        </div>
     );
 }
 
@@ -106,76 +89,67 @@ const DayRule = React.memo(({ type, systemSeq, sensorSeq, ruleSeq, rule }: DayRu
     const dispatch = useDispatch();
 
     return (
-        <Group spacing={0}>
-            <Box>
-                <TimeInput
-                    size="xs"
-                    format="12"
-                    value={buildDate(rule.time)}
-                    onChange={(d) =>
-                        dispatch(
-                            updateRuleField({
-                                systemSeq,
-                                sensorSeq,
-                                type,
-                                ruleSeq,
-                                key: "time",
-                                value: String(buildTime(d)),
-                            })
-                        )
-                    }
-                />
-            </Box>
-            <Box>
-                <TextInput
-                    size="xs"
-                    placeholder="72"
-                    value={rule.temp}
-                    onChange={(e) =>
-                        dispatch(
-                            updateRuleField({
-                                systemSeq,
-                                sensorSeq,
-                                type,
-                                ruleSeq,
-                                key: "temp",
-                                value: e.target.value,
-                            })
-                        )
-                    }
-                />
-            </Box>
-            <Box>
-                <TextInput
-                    size="xs"
-                    placeholder="My Room"
-                    value={rule.label}
-                    onChange={(e) =>
-                        dispatch(
-                            updateRuleField({
-                                systemSeq,
-                                sensorSeq,
-                                type,
-                                ruleSeq,
-                                key: "label",
-                                value: e.target.value,
-                            })
-                        )
-                    }
-                />
-            </Box>
-            <Box>
-                <ActionIcon
-                    title="Delete rule"
-                    color="red"
-                    size="md"
-                    variant="filled"
-                    onClick={() => dispatch(deleteRule({ systemSeq, sensorSeq, type, ruleSeq }))}
-                >
-                    <Icon icon={trashCan} />
-                </ActionIcon>
-            </Box>
-        </Group>
+        <div className="flex items-center space-x-2 mb-2">
+            <Input
+                type="time"
+                className="h-7 w-28"
+                value={buildDate(rule.time)}
+                onChange={(e) =>
+                    dispatch(
+                        updateRuleField({
+                            systemSeq,
+                            sensorSeq,
+                            type,
+                            ruleSeq,
+                            key: "time",
+                            value: String(buildTime(e.target.value)),
+                        })
+                    )
+                }
+            />
+            <Input
+                placeholder="72"
+                className="h-7 w-9"
+                value={rule.temp}
+                onChange={(e) =>
+                    dispatch(
+                        updateRuleField({
+                            systemSeq,
+                            sensorSeq,
+                            type,
+                            ruleSeq,
+                            key: "temp",
+                            value: e.target.value,
+                        })
+                    )
+                }
+            />
+            <Input
+                placeholder="My Room"
+                value={rule.label}
+                className="h-7"
+                holderClassName="flex-grow"
+                onChange={(e) =>
+                    dispatch(
+                        updateRuleField({
+                            systemSeq,
+                            sensorSeq,
+                            type,
+                            ruleSeq,
+                            key: "label",
+                            value: e.target.value,
+                        })
+                    )
+                }
+            />
+            <button
+                title="Delete Rule"
+                className="bg-rose-600 w-7 h-7 rounded-sm flex items-center justify-center hover:bg-rose-700"
+                onClick={() => dispatch(deleteRule({ systemSeq, sensorSeq, type, ruleSeq }))}
+            >
+                <Icon width={16} icon={trashCan} />
+            </button>
+        </div>
     );
 });
 DayRule.displayName = "DayRule";
@@ -193,10 +167,14 @@ function buildDate(mins: number) {
         .second(0)
         .hour(Math.floor(mins / 60))
         .minute(mins % 60)
-        .toDate();
+        .format("HH:mm");
 }
 
-function buildTime(date: Date): number {
-    const d = dayjs(date);
-    return d.minute() + d.hour() * 60;
+function buildTime(date: string): number | null {
+    const pattern = /^\d{2}:\d{2}$/;
+    if (!date.match(pattern)) {
+        return null;
+    }
+    const [hours, mins] = date.split(":");
+    return parseInt(hours) * 60 + parseInt(mins);
 }

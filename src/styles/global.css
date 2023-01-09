@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        @apply text-gray-300;
+        @apply bg-neutral-900;
+    }
+}
+
+@layer components {
+    .tab {
+        @apply p-2 text-sm hover:bg-neutral-700;
+    }
+
+    .tab-selected {
+        @apply border border-t-0 border-x-0 border-b-blue-600;
+    }
+}

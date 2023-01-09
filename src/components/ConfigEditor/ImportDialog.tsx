@@ -1,4 +1,5 @@
-import { Box, Button, Group, Modal, Stack, Textarea } from "@mantine/core";
+import Button from "components/Button";
+import DreyDialog from "components/DreyDialog";
 import { useRef } from "react";
 
 interface ImportDialogProps {
@@ -11,19 +12,27 @@ export function ImportDialog({ opened, onClose, onSave }: ImportDialogProps) {
     const importRef = useRef<HTMLTextAreaElement>(null);
 
     return (
-        <Modal opened={opened} fullScreen onClose={onClose} title="Import Config">
-            <Stack spacing="md">
-                <Box sx={{ textarea: { height: "calc(100vh - 150px)" } }}>
-                    <Textarea sx={{ height: "calc(100vh - 150px)" }} ref={importRef} />
-                </Box>
+        <DreyDialog open={opened} onClose={onClose} fullScreen={true}>
+            <h3 className="text-lg font-bold mb-4">Import Config</h3>
+            <div className="grow w-fill h-fill flex flex-col">
+                <textarea
+                    ref={importRef}
+                    className={`
+                block w-fill grow p-4 bg-neutral-700 border border-neutral-600 rounded-md text-sm shadow-sm placeholder-slate-300
+                focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500
+                disabled:bg-slate-500 disabled:text-slate-800 disabled:border-slate-800 disabled:shadow-none
+                `}
+                />
 
-                <Group position="right">
-                    <Button color="red" onClick={onClose}>
+                <div className="flex flex-none ml-auto space-x-2 mt-4">
+                    <Button variant="danger" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button onClick={() => onSave(importRef.current?.value ?? "")}>Import</Button>
-                </Group>
-            </Stack>
-        </Modal>
+                    <Button variant="default" onClick={() => onSave(importRef.current?.value ?? "")}>
+                        Import
+                    </Button>
+                </div>
+            </div>
+        </DreyDialog>
     );
 }

@@ -1,6 +1,7 @@
-import { Icon } from "@iconify-icon/react";
+import { Tab } from "@headlessui/react";
 import plus from "@iconify-icons/mdi/plus";
-import { ActionIcon, Divider, Group, PasswordInput, Stack, Tabs, TextInput, Title } from "@mantine/core";
+import { ActionIcon } from "components/ActionIcon";
+import Input from "components/Input";
 import { useDispatch } from "react-redux";
 
 import { insertSystem, setTopLevelString } from "../../store/configEditorSlice";
@@ -31,60 +32,58 @@ export function ConfigEditorForm() {
     const dispatch = useDispatch();
 
     return (
-        <Stack>
-            <TextInput
+        <div className="flex flex-col space-y-4">
+            <Input
                 label="Home Assistant Host"
                 placeholder="127.0.0.1"
                 value={config.ha_host}
                 onChange={(e) => dispatch(setTopLevelString({ key: "ha_host", value: e.target.value }))}
             />
-            <PasswordInput
+            <Input
                 label="Home Assistant Token"
                 value={config.ha_key}
                 onChange={(e) => dispatch(setTopLevelString({ key: "ha_key", value: e.target.value }))}
             />
-            <TextInput
+            <Input
                 label="External Sensor Entity ID"
                 placeholder="sensor.dark_sky_temperature"
                 value={config.external_sensor}
                 onChange={(e) => dispatch(setTopLevelString({ key: "external_sensor", value: e.target.value }))}
             />
-            <TextInput
+            <Input
                 label="Time Zone"
                 placeholder="America/Chicago"
                 value={config.tz}
                 onChange={(e) => dispatch(setTopLevelString({ key: "tz", value: e.target.value }))}
             />
 
-            <Divider />
+            <hr />
 
-            <Group position="apart">
-                <Title order={3}>Thermostats / Systems</Title>
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-bold">Thermostats / Systems</h3>
                 <ActionIcon
                     title="Add a Thermostat"
-                    color="green"
-                    variant="outline"
-                    size="xs"
+                    className="border border-green-400 text-green-400 hover:bg-green-900 rounded-lg"
+                    icon={plus}
+                    size={16}
                     onClick={() => dispatch(insertSystem())}
-                >
-                    <Icon icon={plus} />
-                </ActionIcon>
-            </Group>
+                />
+            </div>
 
-            <Tabs defaultValue="0">
-                <Tabs.List>
+            <Tab.Group as="div">
+                <Tab.List>
                     {config.configs.map((s, i) => (
-                        <Tabs.Tab key={i} value={String(i)}>
+                        <Tab key={i} className={({ selected }) => `tab ${selected ? "tab-selected" : ""}`}>
                             {buildTabLabel(s.thermostat_entity_id, i)}
-                        </Tabs.Tab>
+                        </Tab>
                     ))}
-                </Tabs.List>
+                </Tab.List>
                 {config.configs.map((_, i) => (
-                    <Tabs.Panel key={i} value={String(i)}>
+                    <Tab.Panel key={i}>
                         <SystemConfigForm key={i} systemSeq={i} />
-                    </Tabs.Panel>
+                    </Tab.Panel>
                 ))}
-            </Tabs>
-        </Stack>
+            </Tab.Group>
+        </div>
     );
 }

@@ -1,6 +1,8 @@
-import { Icon } from "@iconify-icon/react";
+import { Tab } from "@headlessui/react";
 import plus from "@iconify-icons/mdi/plus";
-import { ActionIcon, Button, Card, Divider, Group, Stack, Tabs, TextInput, Title } from "@mantine/core";
+import { ActionIcon } from "components/ActionIcon";
+import Button from "components/Button";
+import Input from "components/Input";
 import { useDispatch } from "react-redux";
 
 import {
@@ -38,53 +40,49 @@ export function SystemConfigForm({ systemSeq }: { systemSeq: number }) {
     const dispatch = useDispatch();
 
     return (
-        <Card>
-            <Stack>
-                <TextInput
-                    label="Thermostat Entity ID"
-                    placeholder="climate.thermostat"
-                    value={systemConfig.thermostat_entity_id}
-                    onChange={(e) => dispatch(setThermostatEntityId({ systemSeq, value: e.target.value }))}
-                />
+        <div className="flex flex-col space-y-4 p-4 bg-neutral-800">
+            <Input
+                label="Thermostat Entity ID"
+                placeholder="climate.thermostat"
+                value={systemConfig.thermostat_entity_id}
+                onChange={(e) => dispatch(setThermostatEntityId({ systemSeq, value: e.target.value }))}
+            />
 
-                <TextInput
-                    label="Thermostat Sensor"
-                    placeholder="sensor.thermostat_temperature"
-                    value={systemConfig.thermostat_sensor}
-                    onChange={(e) => dispatch(setThermostatSensor({ systemSeq, value: e.target.value }))}
-                />
+            <Input
+                label="Thermostat Sensor"
+                placeholder="sensor.thermostat_temperature"
+                value={systemConfig.thermostat_sensor}
+                onChange={(e) => dispatch(setThermostatSensor({ systemSeq, value: e.target.value }))}
+            />
 
-                <Group position="apart">
-                    <Title order={5}>Sensors/Rooms and Schedules</Title>
-                    <ActionIcon
-                        title="Add a Sensor"
-                        color="green"
-                        variant="outline"
-                        size="xs"
-                        onClick={() => dispatch(insertSensor({ systemSeq }))}
-                    >
-                        <Icon icon={plus} />
-                    </ActionIcon>
-                </Group>
-                <Tabs defaultValue="0">
-                    <Tabs.List>
-                        {systemConfig.temp_sensors.map((s, i) => (
-                            <Tabs.Tab key={i} value={String(i)}>
-                                {buildTabLabel(s, i)}
-                            </Tabs.Tab>
-                        ))}
-                    </Tabs.List>
-                    {systemConfig.temp_sensors.map((_, i) => (
-                        <Tabs.Panel key={i} value={String(i)}>
-                            <SensorEditor systemSeq={systemSeq} sensorSeq={i} />
-                        </Tabs.Panel>
+            <div className="flex justify-between">
+                <h5>Sensors/Rooms and Schedules</h5>
+                <ActionIcon
+                    title="Add a Sensor"
+                    className="border border-green-400 text-green-400 hover:bg-green-900 rounded-lg"
+                    size={14}
+                    icon={plus}
+                    onClick={() => dispatch(insertSensor({ systemSeq }))}
+                />
+            </div>
+            <Tab.Group as="div">
+                <Tab.List>
+                    {systemConfig.temp_sensors.map((s, i) => (
+                        <Tab key={i} className={({ selected }) => `tab ${selected ? "tab-selected" : ""}`}>
+                            {buildTabLabel(s, i)}
+                        </Tab>
                     ))}
-                </Tabs>
-                <Divider />
-                <Button color="red" onClick={() => dispatch(deleteSystem({ systemSeq }))}>
-                    Delete System
-                </Button>
-            </Stack>
-        </Card>
+                </Tab.List>
+                {systemConfig.temp_sensors.map((_, i) => (
+                    <Tab.Panel key={i}>
+                        <SensorEditor systemSeq={systemSeq} sensorSeq={i} />
+                    </Tab.Panel>
+                ))}
+            </Tab.Group>
+            <hr />
+            <Button variant="danger" onClick={() => dispatch(deleteSystem({ systemSeq }))}>
+                Delete System
+            </Button>
+        </div>
     );
 }

@@ -1,7 +1,6 @@
-import { Icon } from "@iconify-icon/react";
-import alertCircle from "@iconify-icons/mdi/alert-circle";
 import close from "@iconify-icons/mdi/close";
-import { showNotification } from "@mantine/notifications";
+import Button from "components/Button";
+import DreyDialog from "components/DreyDialog";
 import { TopIcon } from "components/TopIcon";
 import { NextPage } from "next";
 import { useCallback, useState } from "react";
@@ -30,6 +29,7 @@ export const getServerSideProps = wrapper.getServerSideProps((store) => async ()
 const Config: NextPage = () => {
     const config = useAppSelector((state) => state.configEditor.dreyConfig);
     const [working, setWorking] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
 
     const onSaveRequest = useCallback(
         async (newConfigJson: string): Promise<boolean> => {
@@ -40,23 +40,29 @@ const Config: NextPage = () => {
             const r = await saveConfig(newConfigJson);
             setWorking(false);
             if (r) {
-                showNotification({
-                    icon: <Icon icon={alertCircle} />,
-                    color: "red",
-                    title: "Failed to update config",
-                    message: r,
-                });
+                setAlertMessage("Failed to update config: " + r);
                 return false;
             }
 
-            showNotification({ message: "Config updated!" });
+            setAlertMessage("Config updated!");
             return true;
         },
         [working]
     );
 
     return (
-        <div>
+        <div className="relative">
+            <DreyDialog open={alertMessage !== ""} onClose={() => setAlertMessage("")}>
+                <div className="flex flex-col space-y-4">
+                    <div>{alertMessage}</div>
+                    <div className="flex ml-auto">
+                        <Button variant="default" onClick={() => setAlertMessage("")}>
+                            Ok
+                        </Button>
+                    </div>
+                </div>
+            </DreyDialog>
+
             {config.configs.length > 0 && <TopIcon icon={close} href="/" label="Close" />}
             <Working working={working} />
             <ConfigEditor onSaveRequest={onSaveRequest} />

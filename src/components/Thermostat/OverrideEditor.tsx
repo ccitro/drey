@@ -1,4 +1,6 @@
-import { Button, Group, Modal, Stack, Text, TextInput } from "@mantine/core";
+import Button from "components/Button";
+import DreyDialog from "components/DreyDialog";
+import Input from "components/Input";
 import { useState } from "react";
 
 type OverrideEditorProps = {
@@ -23,13 +25,12 @@ export default function OverrideEditor({ opened, sensorStatus, onResult }: Overr
     const cancel = () => onResult({ actionChosen: "noop" });
 
     return (
-        <Modal opened={opened} onClose={cancel} title={`Override for ${sensorStatus?.label ?? ""}`}>
+        <DreyDialog open={opened} onClose={cancel}>
             {opened && (
-                <Stack spacing="md">
-                    <Text color="dimmed" size="sm">
-                        Will last until {localTime(sensorStatus.ruleEndsAt)}
-                    </Text>
-                    <TextInput
+                <div className="flex flex-col space-y-4">
+                    <h2>Override for {sensorStatus?.label ?? ""}</h2>
+                    <div className="text-neutral-500 text-sm">Will last until {localTime(sensorStatus.ruleEndsAt)}</div>
+                    <Input
                         onFocus={(e) => e.target.select()}
                         onKeyUp={(e) => e.key === "Enter" && setOverride()}
                         data-autofocus
@@ -37,16 +38,18 @@ export default function OverrideEditor({ opened, sensorStatus, onResult }: Overr
                         type="number"
                         onChange={(e) => setOverrideTemp(parseFloat(e.target.value))}
                     />
-                    <Group position="right">
+                    <div className="flex ml-auto space-x-2">
                         {sensorStatus.ruleType === "override" && (
-                            <Button color="red" onClick={deleteOverride}>
+                            <Button variant="danger" onClick={deleteOverride}>
                                 Delete
                             </Button>
                         )}
-                        <Button onClick={setOverride}>Set</Button>
-                    </Group>
-                </Stack>
+                        <Button variant="default" onClick={setOverride}>
+                            Set
+                        </Button>
+                    </div>
+                </div>
             )}
-        </Modal>
+        </DreyDialog>
     );
 }
