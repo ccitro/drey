@@ -157,7 +157,7 @@ export default function ThermostatDial({ thermostat }: { thermostat: string }) {
     const target = Math.round(thermostatStatus.targetTemp);
     const mode = thermostatStatus.hvacState;
 
-    const colors: Partial<Record<HvacState, string>> = { heating: "#E36304", cooling: "#3700b3" };
+    const colors: Partial<Record<HvacState, string>> = { heating: "#e53935", cooling: "#3700b3" };
     const styles: Record<string, React.CSSProperties> = {
         circle: {
             fill: colors[mode] ?? "#222",

@@ -1,4 +1,3 @@
-import { Container, Title } from "@mantine/core";
 import equal from "fast-deep-equal/react";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
@@ -46,8 +45,8 @@ export default function ConfigEditor({ onSaveRequest }: ConfigEditorProps) {
     const remoteChanged = configChanged && !equal(liveConfig, initialConfig);
 
     return (
-        <Container size="sm" my="lg">
-            <Title order={3}>Config Editor</Title>
+        <div className="max-w-3xl flex flex-col mx-auto p-4">
+            <h3 className="text-lg font-bold">Config Editor</h3>
             {remoteChanged && <ChangeAlert />}
             <ImportDialog opened={showingImport} onClose={() => setShowingImport(false)} onSave={onImportClick} />
 
@@ -60,6 +59,6 @@ export default function ConfigEditor({ onSaveRequest }: ConfigEditorProps) {
             />
 
             <ConfigEditorForm />
-        </Container>
+        </div>
     );
 }

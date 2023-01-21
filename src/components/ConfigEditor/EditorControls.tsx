@@ -1,4 +1,5 @@
-import { Button, CopyButton, Group } from "@mantine/core";
+import Button from "components/Button";
+import { useCallback, useState } from "react";
 
 interface EditorControlsProps {
     config: DreyConfig;
@@ -15,26 +16,32 @@ export function EditorControls({
     onDiscardClick,
     onImportClick,
 }: EditorControlsProps) {
+    const [copied, setCopied] = useState(false);
+    const onCopyClick = useCallback(async () => {
+        await navigator.clipboard.writeText(JSON.stringify(config));
+        setCopied(true);
+        setTimeout(() => {
+            setCopied(false);
+        }, 2000);
+    }, [config]);
     return (
-        <Group position="apart" my="md">
-            <Group>
-                <Button disabled={!configChanged} onClick={onSaveClick}>
+        <div className="flex justify-between my-4">
+            <div className="flex space-x-3">
+                <Button variant="default" disabled={!configChanged} onClick={onSaveClick}>
                     Save
                 </Button>
-                <Button color="red" disabled={!configChanged} onClick={onDiscardClick}>
+                <Button variant="danger" disabled={!configChanged} onClick={onDiscardClick}>
                     Discard
                 </Button>
-            </Group>
-            <Group>
-                <CopyButton value={JSON.stringify(config)}>
-                    {({ copied, copy }) => (
-                        <Button sx={{ width: "140px" }} color={copied ? "teal" : "blue"} onClick={copy}>
-                            {copied ? "Copied Config" : "Export Config"}
-                        </Button>
-                    )}
-                </CopyButton>
-                <Button onClick={onImportClick}>Import Config</Button>
-            </Group>
-        </Group>
+            </div>
+            <div className="flex space-x-3">
+                <Button variant="default" onClick={onCopyClick} className="w-40">
+                    {copied ? "Copied to Clipboard" : "Export Config"}
+                </Button>
+                <Button variant="default" onClick={onImportClick} className="w-40">
+                    Import Config
+                </Button>
+            </div>
+        </div>
     );
 }

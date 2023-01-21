@@ -1,5 +1,6 @@
 import Button from "components/Button";
 import DreyDialog from "components/DreyDialog";
+import Input from "components/Input";
 import { useState } from "react";
 
 type OverrideEditorProps = {
@@ -29,8 +30,7 @@ export default function OverrideEditor({ opened, sensorStatus, onResult }: Overr
                 <div className="flex flex-col space-y-4">
                     <h2>Override for {sensorStatus?.label ?? ""}</h2>
                     <div className="text-neutral-500 text-sm">Will last until {localTime(sensorStatus.ruleEndsAt)}</div>
-                    <input
-                        className="rounded-md p-3"
+                    <Input
                         onFocus={(e) => e.target.select()}
                         onKeyUp={(e) => e.key === "Enter" && setOverride()}
                         data-autofocus

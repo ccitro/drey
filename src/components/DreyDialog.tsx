@@ -5,6 +5,7 @@ interface DialogProps {
     open?: boolean | undefined;
     onClose(value: boolean): void;
     initialFocus?: React.MutableRefObject<HTMLElement | null> | undefined;
+    fullScreen?: boolean;
 }
 
 export default function DreyDialog(props: React.PropsWithChildren<DialogProps>) {
@@ -24,7 +25,7 @@ export default function DreyDialog(props: React.PropsWithChildren<DialogProps>) 
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">
-                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                    <div className="flex min-h-full items-center justify-center text-center">
                         <Transition.Child
                             as={Fragment}
                             enter="ease-out duration-300"
@@ -34,7 +35,12 @@ export default function DreyDialog(props: React.PropsWithChildren<DialogProps>) 
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-neutral-800 p-6 text-left align-middle shadow-xl transition-all">
+                            <Dialog.Panel
+                                className={`
+                                    ${props.fullScreen ? "w-screen h-screen" : "w-full max-w-md rounded-2xl shadow-xl"}
+                                    flex flex-col transform overflow-hidden  bg-neutral-800 p-6 text-left align-middle  transition-all
+                                    `}
+                            >
                                 {props.children}
                             </Dialog.Panel>
                         </Transition.Child>
