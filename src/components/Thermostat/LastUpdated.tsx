@@ -1,6 +1,6 @@
 import { Icon } from "@iconify-icon/react";
 import signalOff from "@iconify-icons/mdi/signal-off";
-import { Box, Center, Text, Tooltip } from "@mantine/core";
+import Tooltip from "components/Tooltip";
 import React, { useEffect, useMemo, useState } from "react";
 import { useAppSelector } from "store/store";
 
@@ -28,22 +28,18 @@ export default function LastUpdated() {
         }
     }, [lastCommunication]);
 
-    const spacer = <Box sx={{ width: "16px" }}></Box>;
+    const spacer = <div className="w-4" />;
 
     return (
-        <Center>
+        <div className="mx-auto flex items-center">
             {disconnected && (
-                <Tooltip label="Reconnecting...">
-                    <div>
-                        <Icon icon={signalOff} height={14} />
-                    </div>
+                <Tooltip title="Reconnecting...">
+                    <Icon icon={signalOff} height={14} />
                 </Tooltip>
             )}
             {!disconnected && spacer}
-            <Text size="sm" color="dimmed" align="center" p="sm">
-                {timeText}
-            </Text>
+            <span className="p-2 text-center text-neutral-500 text-sm">{timeText}</span>
             {spacer}
-        </Center>
+        </div>
     );
 }

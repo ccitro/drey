@@ -1,7 +1,8 @@
 import { Icon } from "@iconify-icon/react";
 import alertCircle from "@iconify-icons/mdi/alert-circle";
 import close from "@iconify-icons/mdi/close";
-import { showNotification } from "@mantine/notifications";
+import { MantineProvider } from "@mantine/core";
+import { NotificationsProvider, showNotification } from "@mantine/notifications";
 import { TopIcon } from "components/TopIcon";
 import { NextPage } from "next";
 import { useCallback, useState } from "react";
@@ -56,11 +57,15 @@ const Config: NextPage = () => {
     );
 
     return (
-        <div>
-            {config.configs.length > 0 && <TopIcon icon={close} href="/" label="Close" />}
-            <Working working={working} />
-            <ConfigEditor onSaveRequest={onSaveRequest} />
-        </div>
+        <MantineProvider theme={{ colorScheme: "dark" }} withGlobalStyles withNormalizeCSS>
+            <NotificationsProvider>
+                <div>
+                    {config.configs.length > 0 && <TopIcon icon={close} href="/" label="Close" />}
+                    <Working working={working} />
+                    <ConfigEditor onSaveRequest={onSaveRequest} />
+                </div>
+            </NotificationsProvider>
+        </MantineProvider>
     );
 };
 

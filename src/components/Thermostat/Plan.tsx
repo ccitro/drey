@@ -1,4 +1,3 @@
-import { Container, Text } from "@mantine/core";
 import { useAppSelector } from "store/store";
 import { selectThermostat, selectThermostatSensors } from "store/systemStatesSlice";
 
@@ -41,9 +40,9 @@ export default function Plan({ thermostat }: { thermostat: string }) {
     const operationPlan = buildOperationPlan(sensorStatuses, thermostatStatus);
 
     return (
-        <Container>
-            <Text weight={700}>What is it doing?</Text>
-            <Text size="sm">{operationPlan}</Text>
-        </Container>
+        <div className="p-2">
+            <div className="font-bold">What is it doing?</div>
+            <div className="text-sm">{operationPlan}</div>
+        </div>
     );
 }

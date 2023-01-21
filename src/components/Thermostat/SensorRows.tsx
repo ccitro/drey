@@ -1,4 +1,3 @@
-import { Divider, Stack } from "@mantine/core";
 import React from "react";
 import { useAppSelector } from "store/store";
 import { selectThermostatSensorIds } from "store/systemStatesSlice";
@@ -12,14 +11,14 @@ interface SensorRowsProps {
 export default function SensorRows({ thermostat }: SensorRowsProps) {
     const sensors = useAppSelector((state) => selectThermostatSensorIds(state, thermostat));
     return (
-        <Stack spacing={0}>
-            <Divider />
+        <div className="flex flex-col divide-y divide-neutral-700">
+            <div />
             {sensors.map((sensor) => (
                 <React.Fragment key={sensor}>
                     <Sensor sensor={sensor} thermostat={thermostat} />
-                    <Divider />
                 </React.Fragment>
             ))}
-        </Stack>
+            <div />
+        </div>
     );
 }

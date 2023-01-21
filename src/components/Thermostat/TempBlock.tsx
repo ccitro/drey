@@ -1,4 +1,4 @@
-import { Stack, Text, Tooltip } from "@mantine/core";
+import Tooltip from "components/Tooltip";
 
 interface TempBlockProps {
     temp: string;
@@ -9,13 +9,13 @@ interface TempBlockProps {
 
 export function TempBlock({ temp, label, tip, onClick }: TempBlockProps) {
     return (
-        <Stack sx={{ width: "65px", textAlign: "center", userSelect: "none" }} spacing={0}>
-            <Text onClick={onClick} sx={{ fontSize: "24px", cursor: onClick ? "pointer" : "inherit" }}>
+        <div className="w-16 text-center select-none flex flex-col">
+            <button onClick={onClick} className={`text-2xl ${onClick ? "cursor-pointer" : "cursor-default"}`}>
                 {temp}
-            </Text>
-            <Tooltip label={tip}>
-                <Text sx={{ cursor: "help", textDecoration: "underline dashed" }}>{label}</Text>
+            </button>
+            <Tooltip className="mx-auto" title={tip}>
+                <div className="w-max cursor-help underline decoration-dashed">{label}</div>
             </Tooltip>
-        </Stack>
+        </div>
     );
 }

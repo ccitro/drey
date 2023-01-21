@@ -1,4 +1,3 @@
-import { Group, Text } from "@mantine/core";
 import { useCallback, useState } from "react";
 import { deleteOverride, setOverride } from "services/api";
 import { useAppSelector } from "store/store";
@@ -81,14 +80,12 @@ export default function Sensor({ thermostat, sensor }: SensorProps) {
     }
 
     return (
-        <Group grow p="sm" sx={{ backgroundColor }}>
+        <div className="flex p-2 space-x-4 items-center" style={{ backgroundColor }}>
             {overrideOpen && (
                 <OverrideEditor opened={overrideOpen} sensorStatus={sensorStatus} onResult={onOverrideResult} />
             )}
             <SensorIcons isActiveSensor={isActiveSensor} isThermostatSensor={isThermostatSensor} />
-            <Text weight={700} size="lg" sx={{ flexGrow: 1, maxWidth: "100%" }}>
-                {sensorStatus.label}
-            </Text>
+            <div className="font-bold text-lg grow max-w-full">{sensorStatus.label}</div>
             <TempBlock
                 temp={sensorStatus.currentTemp.toFixed(1)}
                 label={sensorStatus.ruleType === "disconnected" ? "Last" : "Current"}
@@ -100,6 +97,6 @@ export default function Sensor({ thermostat, sensor }: SensorProps) {
                 onClick={onOverrideClick}
                 tip={getReason(sensorStatus)}
             />
-        </Group>
+        </div>
     );
 }

@@ -1,4 +1,3 @@
-import { Container, Title } from "@mantine/core";
 import { NextPage } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -65,8 +64,8 @@ const Home: NextPage<HomeProps> = ({ systemStates }) => {
     }
 
     return (
-        <Container size="sm" my="lg">
-            <Title order={3}>Select a Thermostat / System</Title>
+        <div className="container my-4">
+            <h3>Select a Thermostat / System</h3>
             <ul>
                 {keys.map((k) => (
                     <li key={k}>
@@ -74,7 +73,7 @@ const Home: NextPage<HomeProps> = ({ systemStates }) => {
                     </li>
                 ))}
             </ul>
-        </Container>
+        </div>
     );
 };
 
