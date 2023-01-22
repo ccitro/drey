@@ -5,7 +5,7 @@ WORKDIR /app
 # install node_modules before the app is added, to allow caching of this layer
 COPY package.json /app/
 COPY yarn.lock /app/
-RUN NODE_ENV=production yarn install --frozen-lockfile && \
+RUN NODE_ENV=production yarn install --production=false --frozen-lockfile && \
     rm -rf /usr/local/share/.cache /root/.cache
 
 ADD . /app
