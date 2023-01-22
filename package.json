@@ -1,6 +1,6 @@
 {
   "name": "drey",
-  "version": "0.9.11",
+  "version": "0.9",
   "private": true,
   "type": "module",
   "scripts": {

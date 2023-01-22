@@ -9,5 +9,7 @@
 !next.config.mjs
 !package.json
 !tsconfig.json
+!postcss.config.cjs
+!tailwind.config.cjs
 
 **/drey.db
