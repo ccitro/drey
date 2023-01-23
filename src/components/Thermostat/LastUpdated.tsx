@@ -28,18 +28,14 @@ export default function LastUpdated() {
         }
     }, [lastCommunication]);
 
-    const spacer = <div className="w-4" />;
-
     return (
-        <div className="mx-auto flex items-center">
+        <div className="mx-auto space-x-1 flex items-center">
             {disconnected && (
                 <Tooltip title="Reconnecting...">
                     <Icon icon={signalOff} height={14} />
                 </Tooltip>
             )}
-            {!disconnected && spacer}
-            <span className="p-2 text-center text-neutral-500 text-sm">{timeText}</span>
-            {spacer}
+            <span className="p-2 text-center text-neutral-400 text-sm">{timeText}</span>
         </div>
     );
 }

@@ -1,3 +1,6 @@
+import "tippy.js/dist/tippy.css";
+
+import Tippy from "@tippyjs/react";
 import React from "react";
 
 interface TooltipProps {
@@ -6,15 +9,11 @@ interface TooltipProps {
 }
 
 export default function Tooltip(props: React.PropsWithChildren<TooltipProps>) {
+    /* eslint-disable */
+    const c = props.children as React.ReactElement<any>;
     return (
-        <div className={`relative flex flex-col items-center group ` + (props.className ?? "")}>
-            {props.children}
-            <div className="absolute bottom-0 flex-col items-center hidden z-10 mb-6 group-hover:flex">
-                <span className="whitespace-nowrap relative z-10 p-4 text-xs leading-none text-white bg-neutral-800 rounded-md shadow-lg">
-                    {props.title}
-                </span>
-                <div className="w-3 h-3 -mt-2 rotate-45 bg-neutral-800"></div>
-            </div>
+        <div className={`flex flex-col ${props.className ?? ""}`}>
+            <Tippy content={props.title}>{c}</Tippy>
         </div>
     );
 }

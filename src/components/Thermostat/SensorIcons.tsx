@@ -18,7 +18,7 @@ function SensorIcon({ label, icon }: { label: string; icon: IconifyIcon }) {
 
 export function SensorIcons({ isActiveSensor, isThermostatSensor }: SensorIconsProps) {
     return (
-        <div className="w-4 flex flex-col items-center">
+        <div className="w-4 flex flex-col space-y-2 items-center">
             {isActiveSensor && <SensorIcon icon={star} label="This sensor is dictating how the thermostat is set" />}
             {isThermostatSensor && <SensorIcon icon={thermostat} label="This is the thermostat's main sensor" />}
         </div>

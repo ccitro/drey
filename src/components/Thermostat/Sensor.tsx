@@ -41,15 +41,15 @@ function getReason(sensor: SensorStatus): string {
 
 export default function Sensor({ thermostat, sensor }: SensorProps) {
     const [overrideOpen, setOverrideOpen] = useState(false);
-    const [statusTooltip, setStatusTooltip] = useState("Loading...");
-    const [reasonTooltip, setReasonTooltip] = useState("Loading...");
+    const [statusTip, setStatusTip] = useState("Loading...");
+    const [reasonTip, setReasonTip] = useState("Loading...");
     const activeSensor = useAppSelector((state) => selectThermostatActiveSensor(state, thermostat));
     const thermostatSensor = useAppSelector((state) => selectThermostatMainSensor(state, thermostat));
     const sensorStatus = useAppSelector((state) => selectSensor(state, sensor));
 
     useEffect(() => {
-        setStatusTooltip(`Temperature as of ${localTime(sensorStatus.lastMeasuredAt)}`);
-        setReasonTooltip(getReason(sensorStatus));
+        setStatusTip(`Temperature as of ${localTime(sensorStatus.lastMeasuredAt)}`);
+        setReasonTip(getReason(sensorStatus));
     }, [sensorStatus]);
 
     const onOverrideResult = useCallback(
@@ -87,18 +87,18 @@ export default function Sensor({ thermostat, sensor }: SensorProps) {
     }
 
     return (
-        <div className="flex p-2 space-x-4 items-center" style={{ backgroundColor }}>
-            {overrideOpen && (
-                <OverrideEditor opened={overrideOpen} sensorStatus={sensorStatus} onResult={onOverrideResult} />
-            )}
-            <SensorIcons isActiveSensor={isActiveSensor} isThermostatSensor={isThermostatSensor} />
-            <div className="font-bold text-lg grow max-w-full">{sensorStatus.label}</div>
-            <TempBlock
-                temp={sensorStatus.currentTemp.toFixed(1)}
-                label={sensorStatus.ruleType === "disconnected" ? "Last" : "Current"}
-                tip={statusTooltip}
-            />
-            <TempBlock temp={ruleTemp} label={getLabel(sensorStatus)} onClick={onOverrideClick} tip={reasonTooltip} />
+        <div>
+            <OverrideEditor opened={overrideOpen} sensorStatus={sensorStatus} onResult={onOverrideResult} />
+            <div className="flex p-2 space-x-4 items-center" style={{ backgroundColor }}>
+                <SensorIcons isActiveSensor={isActiveSensor} isThermostatSensor={isThermostatSensor} />
+                <div className="font-bold text-lg grow max-w-full">{sensorStatus.label}</div>
+                <TempBlock
+                    temp={sensorStatus.currentTemp.toFixed(1)}
+                    label={sensorStatus.ruleType === "disconnected" ? "Last" : "Current"}
+                    tip={statusTip}
+                />
+                <TempBlock temp={ruleTemp} label={getLabel(sensorStatus)} onClick={onOverrideClick} tip={reasonTip} />
+            </div>
         </div>
     );
 }

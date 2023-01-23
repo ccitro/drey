@@ -25,7 +25,13 @@ export default function DreyDialog(props: React.PropsWithChildren<DialogProps>) 
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">
-                    <div className="flex min-h-full items-center justify-center text-center">
+                    <div
+                        className={`
+                        flex min-h-full justify-center text-center
+                        items-start mx-3 mt-12 
+                        md:mx-0 md:mt-0 md:items-center
+                        `}
+                    >
                         <Transition.Child
                             as={Fragment}
                             enter="ease-out duration-300"
